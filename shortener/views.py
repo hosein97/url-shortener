@@ -50,9 +50,9 @@ class RedirectShortURLView(APIView):
             )
 
             increment_clicks(
-                short_url.id
+                short_url.short_code
             )
-
+            
             return redirect(
                 short_url.original_url
             )
