@@ -1,8 +1,17 @@
 import random
 import string
 
+from django.db.models import F
+
 from .models import ShortURL
 
+def increment_clicks(short_url_id: int):
+
+    ShortURL.objects.filter(
+        id=short_url_id
+    ).update(
+        clicks=F("clicks") + 1
+    )
 
 def generate_short_code(length=6):
     characters = string.ascii_letters + string.digits

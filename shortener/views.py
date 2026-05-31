@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.http import Http404
+from django.db.models import F
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,7 +11,7 @@ from .serializers import (
     ShortURLCreateSerializer,
     ShortURLResponseSerializer
 )
-from .services import create_short_url
+from .services import create_short_url, increment_clicks
 
 
 class CreateShortURLView(APIView):
@@ -46,6 +47,10 @@ class RedirectShortURLView(APIView):
         try:
             short_url = ShortURL.objects.get(
                 short_code=short_code
+            )
+
+            increment_clicks(
+                short_url.id
             )
 
             return redirect(

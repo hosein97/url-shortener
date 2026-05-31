@@ -8,7 +8,7 @@ class ShortURL(models.Model):
         max_length=10,
         unique=True
     )
-
+    clicks = models.BigIntegerField(default=0)
     created_at = models.DateTimeField(
         auto_now_add=True
     )
