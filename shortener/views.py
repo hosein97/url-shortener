@@ -11,7 +11,7 @@ from .serializers import (
     ShortURLCreateSerializer,
     ShortURLResponseSerializer
 )
-from .services import create_short_url, increment_clicks
+from .services import create_short_url, increment_clicks, get_original_url
 
 
 class CreateShortURLView(APIView):
@@ -45,16 +45,18 @@ class RedirectShortURLView(APIView):
     def get(self, request, short_code):
 
         try:
-            short_url = ShortURL.objects.get(
-                short_code=short_code
-            )
-
-            increment_clicks(
-                short_url.short_code
-            )
+            
+            original_url = get_original_url(short_code)
+            
+            try:
+                increment_clicks(
+                    short_code
+                )
+            except Exception:
+                pass
             
             return redirect(
-                short_url.original_url
+                original_url
             )
 
         except ShortURL.DoesNotExist:

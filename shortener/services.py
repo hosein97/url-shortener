@@ -11,6 +11,34 @@ def increment_clicks(short_code: str):
     redis_client.incr(
         f"clicks:{short_code}"
     )
+    
+def get_original_url(short_code: str) -> str:
+
+    cache_key = f"url:{short_code}"
+    
+    try:
+        cached_url = redis_client.get(cache_key)
+        
+        if cached_url:
+            return cached_url
+    except redis.RedisError:
+        pass
+
+    short_url = ShortURL.objects.get(
+        short_code=short_code
+    )
+    
+    try:
+        redis_client.set(
+            cache_key,
+            short_url.original_url,
+            ex=3600
+        )
+    except redis.RedisError:
+        pass
+
+    return short_url.original_url
+
 
 def flush_clicks():
     for key in redis_client.scan_iter("clicks:*"):
