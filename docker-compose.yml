@@ -58,5 +58,12 @@ services:
     env_file:
       - .env
 
+  k6:
+    image: grafana/k6
+    volumes:
+      - .:/app
+    profiles:
+      - testing
+
 volumes:
   postgres_data:
