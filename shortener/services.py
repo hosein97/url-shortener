@@ -1,10 +1,15 @@
 import random
 import string
+import logging
+import time 
 
 from django.db.models import F
 
 from .models import ShortURL
 from .redis_client import redis_client
+
+
+logger = logging.getLogger(__name__)
 
 def increment_clicks(short_code: str):
 
@@ -13,16 +18,34 @@ def increment_clicks(short_code: str):
     )
     
 def get_original_url(short_code: str) -> str:
+    
+    start = time.perf_counter()
 
     cache_key = f"url:{short_code}"
     
     try:
+        
         cached_url = redis_client.get(cache_key)
         
         if cached_url:
+            logger.info(
+                f"Cache HIT for {short_code}"
+            )
+
+            elapsed = time.perf_counter() - start
+
+            logger.info(
+                f"Cache HIT took {elapsed:.6f}s"
+            )
             return cached_url
+
+        logger.info(
+            f"Cache MISS for {short_code}"
+        )   
     except redis.RedisError:
-        pass
+        logger.exception(
+            "Redis GET failed"
+        )
 
     short_url = ShortURL.objects.get(
         short_code=short_code
@@ -35,8 +58,16 @@ def get_original_url(short_code: str) -> str:
             ex=3600
         )
     except redis.RedisError:
-        pass
+        logger.exception(
+            "Redis SET failed"
+        )
 
+    elapsed = time.perf_counter() - start
+
+    logger.info(
+        f"DB lookup took {elapsed:.6f}s"
+    )
+        
     return short_url.original_url
 
 
