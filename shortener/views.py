@@ -47,13 +47,10 @@ class RedirectShortURLView(APIView):
         try:
             
             original_url = get_original_url(short_code)
-            
-            try:
-                increment_clicks(
-                    short_code
-                )
-            except Exception:
-                pass
+        
+            increment_clicks(
+                short_code
+            )
             
             return redirect(
                 original_url

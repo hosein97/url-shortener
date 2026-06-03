@@ -13,10 +13,14 @@ logger = logging.getLogger(__name__)
 
 def increment_clicks(short_code: str):
 
-    redis_client.incr(
-        f"clicks:{short_code}"
-    )
-    
+    try:
+        redis_client.incr(
+            f"clicks:{short_code}"
+        )
+    except redis.RedisError:
+        logger.exception(
+            "Redis INC failed"
+        )
 def get_original_url(short_code: str) -> str:
     
     start = time.perf_counter()
