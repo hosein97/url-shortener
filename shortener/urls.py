@@ -8,7 +8,8 @@ urlpatterns = [
     ),
     path(
         "<str:short_code>/",
-        RedirectShortURLView.as_view()
+        RedirectShortURLView.as_view(),
+        name="redirect"
     ),
     
 ]

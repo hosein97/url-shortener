@@ -6,8 +6,7 @@ import time
 from django.db.models import F
 
 from .models import ShortURL
-from .redis_client import redis_client
-
+from config.redis import redis_client
 
 logger = logging.getLogger(__name__)
 
