@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "rest_framework",
     "shortener",
+    "analytics"
 ]
 
 MIDDLEWARE = [
@@ -144,6 +145,12 @@ ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
     cast=lambda v: [s.strip() for s in v.split(",")],
 )
+
+RABBITMQ_HOST = config("RABBITMQ_HOST")
+RABBITMQ_PORT = config("RABBITMQ_PORT", cast=int)
+RABBITMQ_USER = config("RABBITMQ_USER")
+RABBITMQ_PASSWORD = config("RABBITMQ_PASSWORD")
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/

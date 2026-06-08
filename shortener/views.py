@@ -2,9 +2,12 @@ from django.shortcuts import redirect
 from django.http import Http404
 from django.db.models import F
 
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from config.messaging.rabbitmq import publish_click
 
 from .models import ShortURL
 from .serializers import (
@@ -47,10 +50,8 @@ class RedirectShortURLView(APIView):
         try:
             
             original_url = get_original_url(short_code)
-        
-            increment_clicks(
-                short_code
-            )
+
+            publish_click(short_code)
             
             return redirect(
                 original_url

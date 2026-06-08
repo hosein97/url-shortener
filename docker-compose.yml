@@ -46,22 +46,38 @@ services:
     ports:
       - "6379:6379"      
 
-  celery_worker:
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  click_consumer:
     build: .
-    command: celery -A config.celery:app worker -l info
+    command: python manage.py consume_clicks
     depends_on:
-      - redis
+      - rabbitmq
+      - redis 
+      - postgres
     env_file:
       - .env
 
-  celery_beat:
+  click_flusher:
     build: .
-    command: celery -A config.celery:app beat -l info
+    command: >
+      sh -c "
+      while true; do
+        python manage.py flush_clicks;
+        sleep 60;
+      done
+      "
     depends_on:
       - redis
+      - postgres
     env_file:
       - .env
-
+  
   k6:
     image: grafana/k6
     volumes:
