@@ -5,13 +5,30 @@ from shortener.models import ShortURL
 from config.redis import redis_client
 
 
-def process_click(short_code: str) -> None:
+from django.db import transaction
+from django.utils import timezone
 
-    key = f"clicks:{short_code}"
+from analytics.models import ClickEvent
+from config.redis import redis_client
 
-    redis_client.incr(key)
+
+def process_click(event: dict) -> None:
+
+    short_code = event["short_code"]
+
+    redis_key = f"clicks:{short_code}"
+    redis_client.incr(redis_key)
+
+    ClickEvent.objects.create(
+        short_url=short_code,
+        ip_address=event.get("ip_address"),
+        user_agent=event.get("user_agent"),
+        referrer=event.get("referrer"),
+        created_at=timezone.now(),
+    )
+
     
-    
+# TODO:Move flusher to shortener app
 def flush_clicks():
     """
     Move Redis click counters into Postgres.

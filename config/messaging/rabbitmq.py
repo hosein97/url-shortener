@@ -17,7 +17,7 @@ def get_connection():
         )
     )
     
-def publish_click(short_code: str):
+def publish_click(event: dict):
 
     connection = get_connection()
 
@@ -31,7 +31,7 @@ def publish_click(short_code: str):
     channel.basic_publish(
         exchange="",
         routing_key="clicks",
-        body=short_code,
+        body=json.dumps(event),
     )
 
     connection.close()

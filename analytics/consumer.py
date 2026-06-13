@@ -1,7 +1,11 @@
+import json
 import pika
 
 from config.messaging.rabbitmq import get_connection
 from analytics.services import process_click
+
+logger = logging.getLogger(__name__)
+
 
 
 QUEUE_NAME = "clicks"
@@ -9,13 +13,23 @@ QUEUE_NAME = "clicks"
 
 def callback(ch, method, properties, body):
 
-    short_code = body.decode()
+    try:
+        event = json.loads(body.decode())
 
-    process_click(short_code)
+        process_click(event)
 
-    ch.basic_ack(
-        delivery_tag=method.delivery_tag
-    )
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
+    except Exception as e:
+        
+        logger.exception(
+            "Processing click event failed"
+        )
+        # optional: requeue or dead-letter later
+        ch.basic_nack(
+            delivery_tag=method.delivery_tag,
+            requeue=False
+        )
 
 
 def start_consumer():
@@ -38,6 +52,6 @@ def start_consumer():
         on_message_callback=callback,
     )
 
-    print("Waiting for click events...")
+    logger.info("Waiting for click events...")
 
     channel.start_consuming()

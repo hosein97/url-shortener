@@ -51,8 +51,15 @@ class RedirectShortURLView(APIView):
             
             original_url = get_original_url(short_code)
 
-            publish_click(short_code)
-            
+            publish_click(
+                {
+                    "short_code": short_code,
+                    "ip_address": request.META.get("REMOTE_ADDR"),
+                    "user_agent": request.META.get("HTTP_USER_AGENT"),
+                    "referrer": request.META.get("HTTP_REFERER"),
+                }
+            ) 
+                       
             return redirect(
                 original_url
             )
