@@ -14,7 +14,7 @@ from .serializers import (
     ShortURLCreateSerializer,
     ShortURLResponseSerializer
 )
-from .services import create_short_url, increment_clicks, get_original_url
+from .services import create_short_url, get_original_url
 
 
 class CreateShortURLView(APIView):

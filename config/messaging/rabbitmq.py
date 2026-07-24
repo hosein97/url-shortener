@@ -1,4 +1,5 @@
 import pika
+import json
 
 from decouple import config
 
@@ -17,20 +18,21 @@ def get_connection():
         )
     )
     
-def publish_click(event: dict):
+    
+def publish_click(event):
 
     connection = get_connection()
-
     channel = connection.channel()
 
-    channel.queue_declare(
-        queue="clicks",
+    channel.exchange_declare(
+        exchange="clicks",
+        exchange_type="fanout",
         durable=True,
     )
 
     channel.basic_publish(
-        exchange="",
-        routing_key="clicks",
+        exchange="clicks",
+        routing_key="",
         body=json.dumps(event),
     )
 

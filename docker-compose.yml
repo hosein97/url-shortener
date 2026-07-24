@@ -53,15 +53,26 @@ services:
       - "5672:5672"
       - "15672:15672"
 
-  click_consumer:
+  click_events_consumer:
     build: .
-    command: python manage.py consume_clicks
+    command: python manage.py consume_click_events
     depends_on:
       - rabbitmq
       - redis 
       - postgres
     env_file:
       - .env
+
+  click_counters_consumer:
+    build: .
+    command: python manage.py consume_click_counters
+    depends_on:
+      - rabbitmq
+      - redis 
+      - postgres
+    env_file:
+      - .env
+
 
   click_flusher:
     build: .

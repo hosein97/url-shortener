@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from analytics.services import flush_clicks
+from shortener.services import flush_clicks
 
 
 class Command(BaseCommand):
