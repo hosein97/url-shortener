@@ -8,7 +8,7 @@ class ShortURLCreateSerializer(serializers.Serializer):
     original_url = serializers.URLField()
 
 
-class ShortURLResponseSerializer(serializers.ModelSerializer):
+class ShortURLSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShortURL
@@ -19,3 +19,4 @@ class ShortURLResponseSerializer(serializers.ModelSerializer):
             "short_code",
             "created_at"
         ]
+

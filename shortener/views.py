@@ -1,21 +1,15 @@
 from django.shortcuts import redirect
 from django.http import Http404
-from django.db.models import F
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from config.messaging.rabbitmq import publish_click
 
-from .models import ShortURL
-from .serializers import (
-    ShortURLCreateSerializer,
-    ShortURLResponseSerializer
-)
-from .services import create_short_url, get_original_url
-
+from shortener.serializers import ShortURLSerializer, ShortURLCreateSerializer
+from shortener.services import get_user_links, create_short_url, get_original_url, get_short_url
 
 class CreateShortURLView(APIView):
 
@@ -44,7 +38,7 @@ class CreateShortURLView(APIView):
             owner=owner,
         )
 
-        response_serializer = ShortURLResponseSerializer(
+        response_serializer = ShortURLSerializer(
             short_url
         )
 
@@ -57,23 +51,63 @@ class CreateShortURLView(APIView):
 class RedirectShortURLView(APIView):
 
     def get(self, request, short_code):
-
-        try:
             
-            original_url = get_original_url(short_code)
+        original_url = get_original_url(short_code)
 
-            publish_click(
-                {
-                    "short_code": short_code,
-                    "ip_address": request.META.get("REMOTE_ADDR"),
-                    "user_agent": request.META.get("HTTP_USER_AGENT"),
-                    "referrer": request.META.get("HTTP_REFERER"),
-                }
-            ) 
-                       
-            return redirect(
-                original_url
-            )
+        publish_click(
+            {
+                "short_code": short_code,
+                "ip_address": request.META.get("REMOTE_ADDR"),
+                "user_agent": request.META.get("HTTP_USER_AGENT"),
+                "referrer": request.META.get("HTTP_REFERER"),
+            }
+        ) 
+                    
+        return redirect(
+            original_url
+        )
 
-        except ShortURL.DoesNotExist:
-            raise Http404("Short URL not found")
+        
+        
+
+class ListShortURLView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        links = get_user_links(
+            user=request.user,
+        )
+
+        serializer = ShortURLSerializer(
+            links,
+            many=True,
+        )
+
+        return Response(serializer.data)
+    
+    
+    
+class RetrieveShortURLView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        short_url_id,
+    ):
+
+        short_url = get_short_url(
+            short_url_id=short_url_id,
+            owner=request.user,
+        )
+        
+        serializer = ShortURLSerializer(
+            short_url,
+        )
+
+        return Response(serializer.data)
