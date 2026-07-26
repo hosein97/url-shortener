@@ -111,7 +111,11 @@ def generate_short_code(length=6):
     )
 
 
-def create_short_url(original_url):
+def create_short_url(
+    *,
+    original_url,
+    owner=None,
+):
 
     short_code = generate_short_code()
 
@@ -122,8 +126,9 @@ def create_short_url(original_url):
         short_code = generate_short_code()
 
     short_url = ShortURL.objects.create(
+        owner=owner,
         original_url=original_url,
-        short_code=short_code
+        short_code=short_code,
     )
 
     return short_url

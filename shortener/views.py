@@ -2,10 +2,10 @@ from django.shortcuts import redirect
 from django.http import Http404
 from django.db.models import F
 
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 
 from config.messaging.rabbitmq import publish_click
 
@@ -19,30 +19,41 @@ from .services import create_short_url, get_original_url
 
 class CreateShortURLView(APIView):
 
+    permission_classes = [AllowAny]
+
     def post(self, request):
 
         serializer = ShortURLCreateSerializer(
             data=request.data
         )
 
-        serializer.is_valid(raise_exception=True)
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        owner = (
+            request.user
+            if request.user.is_authenticated
+            else None
+        )
 
         short_url = create_short_url(
             original_url=serializer.validated_data[
                 "original_url"
-            ]
+            ],
+            owner=owner,
         )
 
-        response_serializer = (
-            ShortURLResponseSerializer(short_url)
+        response_serializer = ShortURLResponseSerializer(
+            short_url
         )
 
         return Response(
             response_serializer.data,
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
-
-
+        
+        
 class RedirectShortURLView(APIView):
 
     def get(self, request, short_code):
