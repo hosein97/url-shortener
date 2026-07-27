@@ -11,6 +11,8 @@ from config.messaging.rabbitmq import publish_click
 from shortener.serializers import ShortURLSerializer, ShortURLCreateSerializer
 from shortener.services import get_user_links, create_short_url, get_original_url, get_short_url
 
+from analytics.services import register_link
+
 class CreateShortURLView(APIView):
 
     permission_classes = [AllowAny]
@@ -30,14 +32,21 @@ class CreateShortURLView(APIView):
             if request.user.is_authenticated
             else None
         )
-
+        
         short_url = create_short_url(
             original_url=serializer.validated_data[
                 "original_url"
             ],
             owner=owner,
         )
-
+        
+        if owner:
+            register_link(
+                short_code=short_url.short_code,
+                owner_id=owner.id,
+                created_at=short_url.created_at,
+            )
+            
         response_serializer = ShortURLSerializer(
             short_url
         )

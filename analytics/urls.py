@@ -1,11 +1,20 @@
 from django.urls import path
 
-from analytics.views import DashboardView
-
+from analytics.views import DashboardView, ClickTimeSeriesView, TopLinksView
 
 urlpatterns = [
     path(
-        "dashboard/",
+        "me/dashboard/",
         DashboardView.as_view(),
-    )
+    ),
+    path(
+    "me/clicks/timeseries/",
+    ClickTimeSeriesView.as_view(),
+    ),
+    path(
+        "me/top-links/",
+        TopLinksView.as_view(),
+    ),
 ]
+
+
