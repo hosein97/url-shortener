@@ -3,11 +3,40 @@ import json
 import pika
 
 from config.messaging.rabbitmq import get_connection
-from analytics.services import process_click
+
+from django.utils import timezone
+
+
+from analytics.repositories.postgres.link_ownership import (
+    get_by_short_code,
+)
+
+from analytics.repositories.clickhouse.click_events import (
+    insert_click_event,
+)
 
 logger = logging.getLogger(__name__)
 
 
+def process_click(event: dict):
+
+    link = get_by_short_code(
+        event["short_code"]
+    )
+
+    insert_click_event(
+        owner_id=link.owner_id if link.owner_id is not None else 0,
+        short_code=link.short_code,
+        original_url=link.original_url,
+
+        ip_address=event.get("ip_address"),
+        user_agent=event.get("user_agent"),
+        referrer=event.get("referrer"),
+
+        created_at=timezone.now(),
+    )
+
+    
 
 def callback(ch, method, properties, body):
 

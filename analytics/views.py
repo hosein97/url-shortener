@@ -1,14 +1,20 @@
-from rest_framework.views import APIView
-from rest_framework.permissions import (
-    IsAuthenticated,
-)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from analytics.serializers import (
-    DashboardSerializer, TimeSeriesSerializer, TopLinkSerializer
+    DashboardSerializer,
+    TimeSeriesSerializer,
+    TopLinkSerializer,
+    LinkDashboardSerializer,
 )
 
-from analytics.services import get_dashboard, get_click_timeseries, get_top_links
+from analytics.services import (
+    dashboard,
+    click_timeseries,
+    top_links,
+    links_dashboard,
+)
 
 class DashboardView(APIView):
 
@@ -18,17 +24,13 @@ class DashboardView(APIView):
 
     def get(self, request):
 
-        dashboard = get_dashboard(
+        data = dashboard(
             owner_id=request.user.id,
         )
 
-        serializer = DashboardSerializer(
-            dashboard,
-        )
+        serializer = DashboardSerializer(data)
 
-        return Response(serializer.data)
-    
-    
+        return Response(serializer.data)    
 
 
 class ClickTimeSeriesView(APIView):
@@ -46,7 +48,7 @@ class ClickTimeSeriesView(APIView):
             )
         )
 
-        data = get_click_timeseries(
+        data = click_timeseries(
             owner_id=request.user.id,
             days=days,
         )
@@ -56,8 +58,7 @@ class ClickTimeSeriesView(APIView):
             many=True,
         )
 
-        return Response(serializer.data)
-    
+        return Response(serializer.data)    
     
 class TopLinksView(APIView):
 
@@ -67,12 +68,49 @@ class TopLinksView(APIView):
 
     def get(self, request):
 
-        links = get_top_links(
+        data = top_links(
             owner_id=request.user.id,
         )
 
         serializer = TopLinkSerializer(
-            links,
+            data,
+            many=True,
+        )
+
+        return Response(serializer.data)
+    
+    
+
+class LinksDashboardView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(self, request):
+
+        page = int(
+            request.query_params.get(
+                "page",
+                1,
+            )
+        )
+
+        page_size = int(
+            request.query_params.get(
+                "page_size",
+                20,
+            )
+        )
+
+        data = links_dashboard(
+            owner_id=request.user.id,
+            page=page,
+            page_size=page_size,
+        )
+
+        serializer = LinkDashboardSerializer(
+            data,
             many=True,
         )
 

@@ -11,7 +11,7 @@ from config.messaging.rabbitmq import publish_click
 from shortener.serializers import ShortURLSerializer, ShortURLCreateSerializer
 from shortener.services import get_user_links, create_short_url, get_original_url, get_short_url
 
-from analytics.services import register_link
+from analytics.repositories.postgres.link_ownership import register_link
 
 class CreateShortURLView(APIView):
 
@@ -40,13 +40,12 @@ class CreateShortURLView(APIView):
             owner=owner,
         )
         
-        if owner:
-            register_link(
-                short_code=short_url.short_code,
-                owner_id=owner.id,
-                created_at=short_url.created_at,
-            )
-            
+        register_link(
+            short_code=short_url.short_code,
+            owner_id=owner.id if owner is not None else None,
+            created_at=short_url.created_at,
+        )
+                
         response_serializer = ShortURLSerializer(
             short_url
         )
@@ -66,8 +65,8 @@ class RedirectShortURLView(APIView):
         publish_click(
             {
                 "short_code": short_code,
-                "ip_address": request.META.get("REMOTE_ADDR"),
                 "user_agent": request.META.get("HTTP_USER_AGENT"),
+                "ip_address": request.META.get("REMOTE_ADDR"),
                 "referrer": request.META.get("HTTP_REFERER"),
             }
         ) 

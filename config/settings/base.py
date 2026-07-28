@@ -184,6 +184,33 @@ RABBITMQ_USER = config("RABBITMQ_USER")
 RABBITMQ_PASSWORD = config("RABBITMQ_PASSWORD")
 
 
+
+
+CLICKHOUSE_HOST = config(
+    "CLICKHOUSE_HOST",
+    default="clickhouse",
+)
+
+CLICKHOUSE_PORT = config(
+    "CLICKHOUSE_PORT",
+    cast=int,
+    default=8123,
+)
+
+CLICKHOUSE_DB = config(
+    "CLICKHOUSE_DB",
+    default="analytics",
+)
+
+CLICKHOUSE_USER = config(
+    "CLICKHOUSE_USER",
+)
+
+CLICKHOUSE_PASSWORD = config(
+    "CLICKHOUSE_PASSWORD",
+)
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 

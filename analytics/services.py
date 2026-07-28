@@ -1,157 +1,100 @@
-from datetime import timedelta
-from django.utils import timezone
+from analytics.repositories.postgres.link_ownership import (
+    count_links,
+    get_links_page,
+)
 
-from django.db.models import F
-
-from config.redis import redis_client
-
-from django.db import transaction
-from django.db.models import Count, Max
-from django.db.models.functions import TruncDate
-
-from analytics.models import ClickEvent, LinkOwnership
-
+from analytics.repositories.clickhouse.click_events import (
+    get_dashboard,
+    get_click_timeseries,
+    get_top_links,
+    get_link_stats,
+)
 
 
-def process_click(event: dict) -> None:
-
-    short_code = event["short_code"]
-
-    ClickEvent.objects.create(
-        short_code=short_code,
-        ip_address=event.get("ip_address"),
-        user_agent=event.get("user_agent"),
-        referrer=event.get("referrer"),
-        created_at=timezone.now(),
-    )
-
- 
-
-
-def get_click_timeseries(
+def dashboard(
     *,
-    owner_id: int,
-    days: int,
+    owner_id,
 ):
-
-    short_codes = (
-        LinkOwnership.objects
-        .filter(
-            owner_id=owner_id,
-        )
-        .values_list(
-            "short_code",
-            flat=True,
-        )
+    stats = get_dashboard(
+        owner_id=owner_id,
     )
-
-    start_date = (
-        timezone.now()
-        - timedelta(days=days)
-    )
-
-    return (
-        ClickEvent.objects
-        .filter(
-            short_code__in=short_codes,
-            created_at__gte=start_date,
-        )
-        .annotate(
-            date=TruncDate("created_at"),
-        )
-        .values("date")
-        .annotate(
-            clicks=Count("id"),
-        )
-        .order_by("date")
-    )
-
-
-
-def get_dashboard(
-    *,
-    owner_id: int,
-):
-
-    short_codes = list(
-        LinkOwnership.objects.filter(
-            owner_id=owner_id,
-        ).values_list(
-            "short_code",
-            flat=True,
-        )
-    )
-
-    now = timezone.now()
-
-    today = now.date()
-
-    last_7_days = now - timedelta(days=7)
 
     return {
-        "total_links": len(short_codes),
-
-        "total_clicks": ClickEvent.objects.filter(
-            short_code__in=short_codes,
-        ).count(),
-
-        "clicks_today": ClickEvent.objects.filter(
-            short_code__in=short_codes,
-            created_at__date=today,
-        ).count(),
-
-        "clicks_last_7_days": ClickEvent.objects.filter(
-            short_code__in=short_codes,
-            created_at__gte=last_7_days,
-        ).count(),
+        "total_links": count_links(
+            owner_id=owner_id,
+        ),
+        "total_clicks": stats["total_clicks"],
+        "clicks_today": stats["clicks_today"],
+        "clicks_last_7_days": stats["clicks_last_7_days"],
+        "unique_visitors": stats["unique_visitors"],
     }
 
 
-
-
-
-
-def get_top_links(
+def top_links(
     *,
-    owner_id: int,
-):
-
-    short_codes = (
-        LinkOwnership.objects
-        .filter(
-            owner_id=owner_id,
-        )
-        .values_list(
-            "short_code",
-            flat=True,
-        )
-    )
-
-    return (
-        ClickEvent.objects
-        .filter(
-            short_code__in=short_codes,
-        )
-        .values(
-            "short_code",
-        )
-        .annotate(
-            clicks=Count("id"),
-            last_click=Max("created_at"),
-        )
-        .order_by("-clicks")
-    )
-
-
-#TODO: dont call this directly from shortner, rabbitmq consumer should call this instead
-def register_link(
-    *,
-    short_code,
     owner_id,
-    created_at,
 ):
-    LinkOwnership.objects.create(
-        short_code=short_code,
+    return get_top_links(
         owner_id=owner_id,
-        created_at=created_at,
     )
+
+
+def click_timeseries(
+    *,
+    owner_id,
+    days,
+):
+    return get_click_timeseries(
+        owner_id=owner_id,
+        days=days,
+    )
+
+
+def links_dashboard(
+    *,
+    owner_id,
+    page,
+    page_size,
+):
+    offset = (page - 1) * page_size
+
+    links = get_links_page(
+        owner_id=owner_id,
+        offset=offset,
+        limit=page_size,
+    )
+
+    stats = get_link_stats(
+        owner_id=owner_id,
+        short_codes=[
+            link.short_code
+            for link in links
+        ],
+    )
+
+    response = []
+
+    for link in links:
+
+        stat = stats.get(
+            link.short_code,
+            {},
+        )
+
+        response.append(
+            {
+                "short_code": link.short_code,
+                "created_at": link.created_at,
+                "original_url": stat.get("original_url"),
+                "clicks": stat.get("clicks", 0),
+                "unique_visitors": stat.get(
+                    "unique_visitors",
+                    0,
+                ),
+                "last_click": stat.get(
+                    "last_click",
+                ),
+            }
+        )
+
+    return response
