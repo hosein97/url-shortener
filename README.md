@@ -238,14 +238,13 @@ Django
 
 # Future Improvements
 
-- Kafka instead of RabbitMQ
 - Batch inserts into ClickHouse
-- Materialized Views
 - Dead Letter Queue
-- Distributed ClickHouse cluster
-- Rate limiting
-- Link expiration
-- Custom aliases
 - QR code generation
 - Prometheus + Grafana monitoring
-- CI/CD pipeline
+- Front-end
+- Improve Auth
+- Admin APIs
+- Billing
+
+
