@@ -6,6 +6,7 @@ export interface AuthContextType {
 
     login: () => Promise<void>;
     logout: () => Promise<void>;
+    register: () => Promise<void>;
 
     getAccessToken: () => string | undefined;
 }

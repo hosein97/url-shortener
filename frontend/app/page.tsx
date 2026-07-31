@@ -8,6 +8,7 @@ export default function Home() {
         authenticated,
         login,
         logout,
+        register
     } = useAuth();
 
     return (
@@ -51,7 +52,7 @@ export default function Home() {
                                 </button>
 
                                 <button
-                                    onClick={login}
+                                    onClick={register}
                                     className="rounded-md bg-black px-4 py-2 text-white hover:bg-gray-800"
                                 >
                                     Register

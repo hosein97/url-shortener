@@ -94,6 +94,10 @@ export default function AuthProvider({
         return keycloak.token;
     };
 
+    const register = async () => {
+        await keycloak.register();
+    };
+
     const value = useMemo(
         () => ({
             initialized,
@@ -101,6 +105,7 @@ export default function AuthProvider({
             user,
             login,
             logout,
+            register,
             getAccessToken,
         }),
         [
