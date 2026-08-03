@@ -1,7 +1,8 @@
 services:
 
   web:
-    build: .
+    build:
+      context: ./backend
     container_name: url_shortener_web
     command: python manage.py runserver 0.0.0.0:8000
     # command: >
@@ -9,13 +10,17 @@ services:
     #   --bind 0.0.0.0:8000
     #   --workers 4
     volumes:
-      - .:/app
+      - ./backend:/app
     ports:
       - "8000:8000"
     depends_on:
       - postgres
+      - keycloak
+      - redis
+      - rabbitmq
+      - clickhouse
     env_file:
-      - .env
+      - ./backend/.env
 
   postgres:
     image: postgres:16
@@ -54,28 +59,33 @@ services:
       - "15672:15672"
 
   click_events_consumer:
-    build: .
+    build:
+      context: ./backend
     command: python manage.py consume_click_events
     depends_on:
       - rabbitmq
       - redis 
       - postgres
     env_file:
-      - .env
+      - ./backend/.env
 
   click_counters_consumer:
-    build: .
+    build:
+      context: ./backend
     command: python manage.py consume_click_counters
+    volumes:
+      - ./backend:/app
     depends_on:
       - rabbitmq
       - redis 
       - postgres
     env_file:
-      - .env
+      - ./backend/.env
 
 
   click_flusher:
-    build: .
+    build:
+      context: ./backend
     command: >
       sh -c "
       while true; do
@@ -83,16 +93,18 @@ services:
         sleep 60;
       done
       "
+    volumes:
+      - ./backend:/app
     depends_on:
       - redis
       - postgres
     env_file:
-      - .env
+      - ./backend/.env
   
   k6:
     image: grafana/k6
     volumes:
-      - .:/app
+      - ./backend:/app
     profiles:
       - testing
 
@@ -115,7 +127,7 @@ services:
 
     volumes:
       - clickhouse_data:/var/lib/clickhouse
-      - ./analytics/clickhouse/schema:/docker-entrypoint-initdb.d
+      - ./backend/analytics/clickhouse/schema:/docker-entrypoint-initdb.d
     
     healthcheck:
       test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]

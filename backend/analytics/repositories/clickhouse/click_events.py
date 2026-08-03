@@ -1,5 +1,6 @@
-from config.clickhouse import client
+from config.clickhouse import get_clickhouse_client
 
+client = get_clickhouse_client()
 
 def insert_click_event(
     *,

@@ -81,8 +81,8 @@ REST_FRAMEWORK = {
 
     "DEFAULT_AUTHENTICATION_CLASSES": (
 
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-
+        # "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "identity.authentication.KeycloakAuthentication",
     ),
 
     "DEFAULT_PERMISSION_CLASSES": (
@@ -92,18 +92,18 @@ REST_FRAMEWORK = {
     ),
 }
 
-SIMPLE_JWT = {
+# SIMPLE_JWT = {
 
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+#     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
 
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 
-    "ROTATE_REFRESH_TOKENS": False,
+#     "ROTATE_REFRESH_TOKENS": False,
 
-    "BLACKLIST_AFTER_ROTATION": False,
+#     "BLACKLIST_AFTER_ROTATION": False,
 
-    "UPDATE_LAST_LOGIN": True,
-}
+#     "UPDATE_LAST_LOGIN": True,
+# }
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -209,6 +209,15 @@ CLICKHOUSE_USER = config(
 CLICKHOUSE_PASSWORD = config(
     "CLICKHOUSE_PASSWORD",
 )
+
+
+AUTH_USER_MODEL = "identity.User"
+
+KEYCLOAK_SERVER = "http://keycloak:8080"
+
+KEYCLOAK_REALM = "url-shortener"
+
+KEYCLOAK_CLIENT_ID = "url-shortener"
 
 
 # Internationalization
