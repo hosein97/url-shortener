@@ -1,25 +1,20 @@
 "use client";
 
-
 import {
     useEffect,
     useMemo,
     useState,
 } from "react";
 
-
 import type {
     KeycloakProfile,
 } from "keycloak-js";
 
-
 import keycloak from "@/lib/keycloak";
-
 
 import {
     AuthContext,
 } from "@/contexts/AuthContext";
-
 
 
 export default function AuthProvider({
@@ -29,109 +24,65 @@ export default function AuthProvider({
 }) {
 
 
-    const [
-        initialized,
-        setInitialized
-    ] = useState(false);
+    const [authenticated, setAuthenticated] =
+        useState(false);
 
 
-
-    const [
-        authenticated,
-        setAuthenticated
-    ] = useState(false);
-
-
-
-    const [
-        user,
-        setUser
-    ] = useState<KeycloakProfile | null>(null);
-
+    const [user, setUser] =
+        useState<KeycloakProfile | null>(null);
 
 
 
     useEffect(() => {
 
 
-        async function initialize() {
+        keycloak.onAuthLogout = () => {
 
+            setAuthenticated(false);
 
-            try {
+            setUser(null);
 
-
-                keycloak.onAuthLogout = () => {
-
-                    setAuthenticated(false);
-
-                    setUser(null);
-
-                };
+        };
 
 
 
-                const authenticated =
-                    await keycloak.init({
+        keycloak.init({
 
-                        onLoad: "check-sso",
+            onLoad: "check-sso",
 
-                        pkceMethod: "S256",
+            pkceMethod: "S256",
 
-                        silentCheckSsoRedirectUri:
-                            window.location.origin +
-                            "/silent-check-sso.html",
-
-                    });
+        })
+        .then(async (auth) => {
 
 
-
-                setAuthenticated(authenticated);
+            setAuthenticated(auth);
 
 
 
-                if (authenticated) {
+            if (auth) {
+
+                const profile =
+                    await keycloak.loadUserProfile();
 
 
-                    const profile =
-                        await keycloak.loadUserProfile();
-
-
-                    setUser(profile);
-
-                }
-
-
-
-            }
-            catch(error) {
-
-
-                console.error(
-                    "Keycloak initialization failed",
-                    error
-                );
-
-
-            }
-            finally {
-
-
-                setInitialized(true);
-
+                setUser(profile);
 
             }
 
 
-        }
+        })
+        .catch((error) => {
 
+            console.error(
+                "Keycloak initialization failed",
+                error
+            );
 
-
-        initialize();
+        });
 
 
     }, []);
-
-
 
 
 
@@ -142,8 +93,6 @@ export default function AuthProvider({
     };
 
 
-
-
     const logout = async () => {
 
         await keycloak.logout();
@@ -151,15 +100,11 @@ export default function AuthProvider({
     };
 
 
-
-
     const register = async () => {
 
         await keycloak.register();
 
     };
-
-
 
 
     const getAccessToken = () => {
@@ -170,13 +115,8 @@ export default function AuthProvider({
 
 
 
-
-
     const value = useMemo(
-
         () => ({
-
-            initialized,
 
             authenticated,
 
@@ -191,21 +131,11 @@ export default function AuthProvider({
             getAccessToken,
 
         }),
-
-
         [
-
-            initialized,
-
             authenticated,
-
             user,
-
         ]
-
     );
-
-
 
 
 

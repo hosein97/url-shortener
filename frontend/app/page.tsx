@@ -1,91 +1,123 @@
 "use client";
 
-
 import {
     useState,
 } from "react";
-
 
 import {
     useAuth,
 } from "@/hooks/useAuth";
 
 
-import {
-    shortenURL,
-} from "@/lib/api";
-
-
-
-export default function Home(){
+export default function Home() {
 
 
     const {
-
-        initialized,
-
-        authenticated,
-
-        login,
-
-        logout,
-
-        register,
-
         getAccessToken,
-
-        user,
-
     } = useAuth();
 
 
 
-    const [url,setUrl]=useState("");
+    const [url, setUrl] =
+        useState("");
 
-    const [result,setResult]=useState("");
+    const [shortUrl, setShortUrl] =
+        useState("");
 
-    const [loading,setLoading]=useState(false);
-
-
-
-
-    async function handleShorten(){
+    const [loading, setLoading] =
+        useState(false);
 
 
-        try{
+
+    const shorten = async () => {
+
+
+        if (!url) {
+            return;
+        }
+
+
+        try {
 
             setLoading(true);
 
 
-            const data =
-                await shortenURL(
-                    url,
-                    getAccessToken(),
+            const token =
+                getAccessToken();
+
+
+
+            const response =
+                await fetch(
+                    "http://localhost:8000/shorten/",
+                    {
+
+                        method: "POST",
+
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+
+                            ...(token && {
+
+                                Authorization:
+                                    `Bearer ${token}`,
+
+                            }),
+
+                        },
+
+
+                        body: JSON.stringify({
+
+                            original_url: url,
+
+                        }),
+
+                    }
                 );
 
 
-            setResult(
+
+            const data =
+                await response.json();
+
+
+
+            if (!response.ok) {
+
+                console.error(data);
+
+                return;
+
+            }
+
+
+
+            setShortUrl(
                 data.short_code
             );
 
 
-        }
-        catch(e){
 
-            console.error(e);
+        } catch (error) {
 
-            alert(
-                "Failed to shorten URL"
+            console.error(
+                "Shorten failed",
+                error
             );
 
-        }
-        finally{
+
+        } finally {
 
             setLoading(false);
 
         }
 
-    }
+    };
 
 
 
@@ -95,109 +127,59 @@ export default function Home(){
         <main className="min-h-screen bg-white">
 
 
-            <nav className="border-b">
-
-                <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-
-
-                    <h1 className="text-2xl font-bold">
-                        Shortly
-                    </h1>
-
-
-
-                    <div className="flex gap-3">
-
-
-                        {!initialized ? (
-
-                            <button
-                                disabled
-                                className="rounded-md border px-4 py-2 text-gray-400"
-                            >
-                                Loading...
-                            </button>
+            <section
+                className="
+                    mx-auto
+                    mt-32
+                    flex
+                    max-w-3xl
+                    flex-col
+                    items-center
+                    px-6
+                "
+            >
 
 
-                        ) : authenticated ? (
+                <h2 className="mb-3 text-5xl font-bold">
 
-                            <>
-
-                                <span className="py-2 text-sm">
-                                    {user?.username}
-                                </span>
-
-
-                                <button
-                                    onClick={logout}
-                                    className="rounded-md border px-4 py-2"
-                                >
-                                    Logout
-                                </button>
-
-                            </>
-
-
-                        ) : (
-
-                            <>
-
-                                <button
-                                    onClick={login}
-                                    className="rounded-md border px-4 py-2"
-                                >
-                                    Login
-                                </button>
-
-
-                                <button
-                                    onClick={register}
-                                    className="rounded-md bg-black px-4 py-2 text-white"
-                                >
-                                    Register
-                                </button>
-
-                            </>
-
-                        )}
-
-
-                    </div>
-
-                </div>
-
-            </nav>
-
-
-
-            <section className="mx-auto mt-32 max-w-3xl px-6">
-
-
-                <h2 className="mb-3 text-center text-5xl font-bold">
                     Shorten your URLs
+
                 </h2>
 
 
+
                 <p className="mb-10 text-center text-gray-600">
+
                     Fast, simple and secure URL shortening.
+
                 </p>
 
 
 
-                <div className="flex gap-4">
+                <div className="flex w-full gap-4">
 
 
                     <input
 
+                        type="url"
+
                         value={url}
 
-                        onChange={
-                            e=>setUrl(e.target.value)
+                        onChange={(e) =>
+                            setUrl(e.target.value)
                         }
 
-                        placeholder="https://example.com"
+                        placeholder="https://example.com/very/long/url"
 
-                        className="flex-1 rounded-lg border px-4 py-3"
+                        className="
+                            flex-1
+                            rounded-lg
+                            border
+                            px-4
+                            py-3
+                            outline-none
+                            focus:border-black
+                        "
 
                     />
 
@@ -205,21 +187,29 @@ export default function Home(){
 
                     <button
 
-                        onClick={handleShorten}
+                        onClick={shorten}
 
                         disabled={loading}
 
-                        className="rounded-lg bg-black px-8 py-3 text-white"
+                        className="
+                            rounded-lg
+                            bg-black
+                            px-8
+                            py-3
+                            font-medium
+                            text-white
+                            hover:bg-gray-800
+                            disabled:opacity-50
+                        "
 
                     >
 
                         {
                             loading
-                            ?
-                            "..."
-                            :
-                            "Shorten"
+                                ? "Shortening..."
+                                : "Shorten"
                         }
+
 
                     </button>
 
@@ -228,16 +218,42 @@ export default function Home(){
 
 
 
+
                 {
-                    result &&
-                    <p className="mt-6 text-center">
+                shortUrl && (
 
-                        Short code:
-                        {" "}
-                        {result}
+                    <div className="mt-8 rounded-lg border p-4">
 
-                    </p>
+
+                        <p className="text-gray-600">
+
+                            Your short URL:
+
+                        </p>
+
+
+
+                        <a
+
+                            href={`http://localhost:8000/${shortUrl}/`}
+
+                            target="_blank"
+
+                            className="font-semibold text-blue-600"
+
+                        >
+
+                            http://localhost:8000/{shortUrl}/
+
+
+                        </a>
+
+
+                    </div>
+
+                )
                 }
+
 
 
             </section>

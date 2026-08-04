@@ -4,8 +4,6 @@ import type { KeycloakProfile } from "keycloak-js";
 
 export interface AuthContextType {
 
-    initialized: boolean;
-
     authenticated: boolean;
 
     user: KeycloakProfile | null;
@@ -17,6 +15,7 @@ export interface AuthContextType {
     register: () => Promise<void>;
 
     getAccessToken: () => string | undefined;
+
 }
 
 

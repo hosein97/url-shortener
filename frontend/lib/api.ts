@@ -1,41 +1,36 @@
-export const API_URL =
-    process.env.NEXT_PUBLIC_API_URL;
+import keycloak from "@/lib/keycloak";
 
 
-export async function shortenURL(
-    original_url: string,
-    token?: string,
+const API_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:8000";
+
+
+export async function apiFetch(
+    endpoint: string,
+    options: RequestInit = {}
 ) {
 
-    const response = await fetch(
-        `${API_URL}/shorten/`,
+    const token = keycloak.token;
+
+
+    return fetch(
+        `${API_URL}${endpoint}`,
         {
-            method: "POST",
+            ...options,
 
             headers: {
+
                 "Content-Type": "application/json",
 
-                ...(token
-                    ? {
-                        Authorization: `Bearer ${token}`,
-                    }
-                    : {}),
+                ...(token && {
+                    Authorization: `Bearer ${token}`,
+                }),
+
+                ...options.headers,
             },
 
-            body: JSON.stringify({
-                original_url,
-            }),
         }
     );
 
-
-    if (!response.ok) {
-
-        const text = await response.text();
-
-        throw new Error(text);
-    }
-
-
-    return response.json();
 }
