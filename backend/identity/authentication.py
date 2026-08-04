@@ -79,13 +79,13 @@ class KeycloakAuthentication(BaseAuthentication):
 
 
 
-        keycloak_id = payload["sub"]
+        keycloak_sub = payload["sub"]
 
 
         user, created = User.objects.get_or_create(
 
-            keycloak_id=keycloak_id,
-
+            keycloak_sub=keycloak_sub,
+    
             defaults={
                 "username": payload.get(
                     "preferred_username"
