@@ -4,11 +4,13 @@ from analytics.models import LinkOwnership
 def register_link(
     *,
     short_code,
+    original_url,
     owner_id,
     created_at,
 ):
     LinkOwnership.objects.create(
         short_code=short_code,
+        original_url=original_url,
         owner_id=owner_id,
         created_at=created_at,
     )

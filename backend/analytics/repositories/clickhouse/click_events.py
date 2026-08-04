@@ -1,6 +1,5 @@
 from config.clickhouse import get_clickhouse_client
 
-client = get_clickhouse_client()
 
 def insert_click_event(
     *,
@@ -12,6 +11,7 @@ def insert_click_event(
     referrer,
     created_at,
 ):
+    client = get_clickhouse_client()
     client.insert(
         "click_events",
         [[
@@ -39,6 +39,7 @@ def get_dashboard(
     *,
     owner_id,
 ):
+    client = get_clickhouse_client()
     result = client.query(
         """
         SELECT
@@ -69,6 +70,8 @@ def get_click_timeseries(
     owner_id,
     days,
 ):
+    client = get_clickhouse_client()
+    
     result = client.query(
         """
         SELECT
@@ -99,6 +102,8 @@ def get_top_links(
     *,
     owner_id,
 ):
+    client = get_clickhouse_client()
+    
     result = client.query(
         """
         SELECT
@@ -135,6 +140,8 @@ def get_link_stats(
     owner_id,
     short_codes,
 ):
+    client = get_clickhouse_client()
+    
     if not short_codes:
         return {}
 

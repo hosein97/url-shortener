@@ -8,6 +8,8 @@ class LinkOwnership(models.Model):
         primary_key=True,
     )
 
+    original_url = models.URLField()
+
     owner_id = models.IntegerField(
         null=True,
         blank=True,

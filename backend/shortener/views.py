@@ -33,15 +33,16 @@ class CreateShortURLView(APIView):
             else None
         )
         
+        original_url=serializer.validated_data["original_url"]
+        
         short_url = create_short_url(
-            original_url=serializer.validated_data[
-                "original_url"
-            ],
+            original_url=original_url,
             owner=owner,
         )
         
         register_link(
             short_code=short_url.short_code,
+            original_url=original_url,    
             owner_id=owner.id if owner is not None else None,
             created_at=short_url.created_at,
         )
