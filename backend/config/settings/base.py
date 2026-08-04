@@ -211,13 +211,26 @@ CLICKHOUSE_PASSWORD = config(
 )
 
 
+
 AUTH_USER_MODEL = "identity.User"
 
-KEYCLOAK_SERVER = "http://keycloak:8080"
 
-KEYCLOAK_REALM = "url-shortener"
 
-KEYCLOAK_CLIENT_ID = "url-shortener"
+KEYCLOAK_INTERNAL_URL = config(
+    "KEYCLOAK_INTERNAL_URL"
+)
+
+KEYCLOAK_PUBLIC_URL = config(
+    "KEYCLOAK_PUBLIC_URL"
+)
+
+KEYCLOAK_REALM = config(
+    "KEYCLOAK_REALM"
+)
+
+KEYCLOAK_API_AUDIENCE = config(
+    "KEYCLOAK_API_AUDIENCE"
+)
 
 
 # Internationalization

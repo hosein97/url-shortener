@@ -11,9 +11,15 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 JWKS_URL = (
-    f"{settings.KEYCLOAK_SERVER}"
+    f"{settings.KEYCLOAK_INTERNAL_URL}"
     f"/realms/{settings.KEYCLOAK_REALM}"
     "/protocol/openid-connect/certs"
+)
+
+
+ISSUER = (
+    f"{settings.KEYCLOAK_PUBLIC_URL}"
+    f"/realms/{settings.KEYCLOAK_REALM}"
 )
 
 jwk_client = PyJWKClient(JWKS_URL)
@@ -60,12 +66,9 @@ class KeycloakAuthentication(BaseAuthentication):
 
                 algorithms=["RS256"],
 
-                audience=settings.KEYCLOAK_CLIENT_ID,
+                audience=settings.KEYCLOAK_API_AUDIENCE,
 
-                issuer=(
-                    f"{settings.KEYCLOAK_SERVER}"
-                    f"/realms/{settings.KEYCLOAK_REALM}"
-                ),
+                issuer=ISSUER,
 
             )
 
