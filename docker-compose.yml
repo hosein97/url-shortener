@@ -181,6 +181,20 @@ services:
 
       - "8080:8080"
 
+  next-spa:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: url_shortener_spa
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - web
+      - keycloak
+
 volumes:
   postgres_data:
   clickhouse_data:  
