@@ -1,5 +1,20 @@
 "use client";
 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "@/components/ui/card";
 
 import {
     useEffect,
@@ -11,7 +26,15 @@ import {
     apiFetch,
 } from "@/lib/api";
 
-
+import {
+    ResponsiveContainer,
+    LineChart,
+    Line,
+    CartesianGrid,
+    XAxis,
+    YAxis,
+    Tooltip,
+} from "recharts";
 
 interface Dashboard {
 
@@ -43,10 +66,16 @@ interface TopLink {
 }
 
 
+interface TimePoint {
+    date: string;
+    clicks: number;
+}
 
 
 export default function DashboardPage() {
 
+    const [series, setSeries] =
+    useState<TimePoint[]>([]);
 
     const [dashboard, setDashboard] =
         useState<Dashboard | null>(null);
@@ -95,6 +124,16 @@ export default function DashboardPage() {
                 topData
             );
 
+            const seriesResponse =
+            await apiFetch(
+                "/analytics/me/clicks/timeseries/"
+            );
+        
+            const seriesData =
+            await seriesResponse.json();
+        
+            setSeries(seriesData);            
+
         }
 
 
@@ -136,40 +175,174 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-5 gap-4">
 
+                <Card>
 
-                <Card
-                    title="Links"
-                    value={dashboard.total_links}
-                />
+                    <CardHeader>
+
+                        <CardTitle>
+                            Links
+                        </CardTitle>
+
+                    </CardHeader>
+
+                    <CardContent>
+
+                        <p className="text-4xl font-bold">
+
+                            {dashboard.total_links}
+
+                        </p>
+
+                    </CardContent>
+
+                </Card>
+
+                <Card>
+
+                    <CardHeader>
+
+                        <CardTitle>
+                            Clicks
+                        </CardTitle>
+
+                    </CardHeader>
+
+                    <CardContent>
+
+                        <p className="text-4xl font-bold">
+
+                            {dashboard.total_clicks}
+
+                        </p>
+
+                    </CardContent>
+
+                </Card>
 
 
-                <Card
-                    title="Clicks"
-                    value={dashboard.total_clicks}
-                />
+                <Card>
+
+                    <CardHeader>
+
+                        <CardTitle>
+                            Today
+                        </CardTitle>
+
+                    </CardHeader>
+
+                    <CardContent>
+
+                        <p className="text-4xl font-bold">
+
+                            {dashboard.clicks_today}
+
+                        </p>
+
+                    </CardContent>
+
+                </Card>
 
 
-                <Card
-                    title="Today"
-                    value={dashboard.clicks_today}
-                />
 
 
-                <Card
-                    title="Last 7 days"
-                    value={dashboard.clicks_last_7_days}
-                />
+                <Card>
+
+                    <CardHeader>
+
+                        <CardTitle>
+                            Last 7 days
+                        </CardTitle>
+
+                    </CardHeader>
+
+                    <CardContent>
+
+                        <p className="text-4xl font-bold">
+
+                            {dashboard.clicks_last_7_days}
+
+                        </p>
+
+                    </CardContent>
+
+                </Card>
 
 
-                <Card
-                    title="Visitors"
-                    value={dashboard.unique_visitors}
-                />
+                <Card>
+
+                    <CardHeader>
+
+                        <CardTitle>
+                            Visitors
+                        </CardTitle>
+
+                    </CardHeader>
+
+                    <CardContent>
+
+                        <p className="text-4xl font-bold">
+
+                            {dashboard.unique_visitors}
+
+                        </p>
+
+                    </CardContent>
+
+                </Card>
 
 
             </div>
 
 
+            <Card className="mt-10">
+
+                <CardHeader>
+
+                    <CardTitle>
+                        Clicks over time
+                    </CardTitle>
+
+                </CardHeader>
+
+                <CardContent>
+
+                    <div className="h-[350px]">
+
+                        <ResponsiveContainer
+                            width="100%"
+                            height="100%"
+                        >
+
+                            <LineChart
+                                data={series}
+                            >
+
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                />
+
+                                <XAxis
+                                    dataKey="date"
+                                />
+
+                                <YAxis />
+
+                                <Tooltip />
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="clicks"
+                                />
+
+                            </LineChart>
+
+                        </ResponsiveContainer>
+
+                    </div>
+
+                </CardContent>
+
+                </Card>
 
 
             <section className="mt-10">
@@ -182,49 +355,67 @@ export default function DashboardPage() {
                 </h2>
 
 
+                <Table>
 
-                <div className="space-y-4">
+                    <TableHeader>
 
+                    <TableRow>
 
-                    {topLinks.map((link) => (
+                    <TableHead>
+                    Short URL
+                    </TableHead>
 
-                        <div
+                    <TableHead>
+                    Destination
+                    </TableHead>
 
-                            key={link.short_code}
+                    <TableHead>
+                    Clicks
+                    </TableHead>
 
-                            className="rounded border p-4"
+                    </TableRow>
 
-                        >
+                    </TableHeader>
 
-                            <p className="font-semibold">
+                    <TableBody>
 
-                                {link.short_code}
+                    {topLinks.map(link => (
 
-                            </p>
+                    <TableRow key={link.short_code}>
 
+                    <TableCell>
 
-                            <p className="text-gray-600">
+                    <a
+                    href={`http://localhost:8000/${link.short_code}/`}
+                    target="_blank"
+                    className="text-blue-600"
+                    >
 
-                                {link.original_url}
+                    {link.short_code}
 
-                            </p>
+                    </a>
 
+                    </TableCell>
 
-                            <p>
+                    <TableCell>
 
-                                Clicks:
-                                {" "}
-                                {link.clicks}
+                    {link.original_url}
 
-                            </p>
+                    </TableCell>
 
+                    <TableCell>
 
-                        </div>
+                    {link.clicks}
+
+                    </TableCell>
+
+                    </TableRow>
 
                     ))}
 
+                    </TableBody>
 
-                </div>
+                    </Table>
 
 
             </section>
@@ -240,34 +431,3 @@ export default function DashboardPage() {
 
 
 
-
-function Card({
-    title,
-    value,
-}: {
-    title:string;
-    value:number;
-}) {
-
-
-    return (
-
-        <div className="rounded-lg border p-5">
-
-            <p className="text-gray-500">
-                {title}
-            </p>
-
-
-            <p className="text-3xl font-bold">
-
-                {value}
-
-            </p>
-
-
-        </div>
-
-    );
-
-}
