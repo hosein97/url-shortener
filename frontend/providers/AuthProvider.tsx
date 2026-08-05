@@ -94,11 +94,10 @@ export default function AuthProvider({
 
 
     const logout = async () => {
-
-        await keycloak.logout();
-
+        await keycloak.logout({
+            redirectUri: window.location.origin,
+        });
     };
-
 
     const register = async () => {
 
